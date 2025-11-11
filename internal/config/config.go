@@ -9,7 +9,13 @@ import (
 )
 
 type Config struct {
-	Name string `mapstructure:"name"`
+	Backends map[string]BackendConfig `yaml:"backends" mapstructure:"backends"`
+}
+
+type BackendConfig struct {
+	Type     string                 `yaml:"type" mapstructure:"type"`
+	Deps     []string               `yaml:"deps" mapstructure:"deps"`
+	Settings map[string]interface{} `yaml:",inline" mapstructure:",remain"`
 }
 
 func Load(configPath string) (*Config, error) {
