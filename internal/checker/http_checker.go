@@ -19,25 +19,21 @@ type HttpChecker struct {
 	Config *config.Config
 }
 
-func NewHttpChecker(config *config.Config) *HttpChecker {
-	return &HttpChecker{Config: config}
-}
-
 func (r *HttpChecker) Check(ctx context.Context, subsystem string) (model.CheckResult, error) {
-	backendCfg, err := r.validateConfig(subsystem)
+	backend_cfg, err := r.validateConfig(subsystem)
 	if err != nil {
 		return model.CheckResult{}, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "GET", backendCfg.URL, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", backend_cfg.URL, nil)
 	if err != nil {
 		return model.CheckResult{Status: model.PingStatusNotOk, Details: err.Error()}, err
 	}
-	for k, v := range backendCfg.Headers {
+	for k, v := range backend_cfg.Headers {
 		req.Header.Set(k, v)
 	}
 
-	timeout := time.Duration(backendCfg.Timeout) * time.Second
+	timeout := time.Duration(backend_cfg.Timeout) * time.Second
 	client := &http.Client{Timeout: timeout}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -62,15 +58,15 @@ func (r *HttpChecker) Check(ctx context.Context, subsystem string) (model.CheckR
 }
 
 func (c *HttpChecker) validateConfig(subsystem string) (config.BackendConfig, error) {
-	backendCfg, exist := c.Config.Backends[subsystem]
+	backend_cfg, exist := c.Config.Backends[subsystem]
 	if !exist {
 		return config.BackendConfig{}, fmt.Errorf("config for %s not found for HttpChecker", subsystem)
 	}
-	if strings.ToLower(backendCfg.Type) != "http" {
+	if strings.ToLower(backend_cfg.Type) != "http" {
 		return config.BackendConfig{}, fmt.Errorf("unexpected type of %s for HttpChecker", subsystem)
 	}
-	if backendCfg.URL == "" {
+	if backend_cfg.URL == "" {
 		return config.BackendConfig{}, fmt.Errorf("empty url in backend config for %s", subsystem)
 	}
-	return backendCfg, nil
+	return backend_cfg, nil
 }

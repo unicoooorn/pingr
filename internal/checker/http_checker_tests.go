@@ -29,7 +29,7 @@ func TestHttpChecker_Local200(t *testing.T) {
 		},
 	}
 
-	c := NewHttpChecker(&cfg)
+	c := NewChecker(&cfg)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
