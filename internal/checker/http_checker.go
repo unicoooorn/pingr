@@ -16,10 +16,10 @@ import (
 var _ service.Checker = &HttpChecker{}
 
 type HttpChecker struct {
-	Config config.Config
+	Config *config.Config
 }
 
-func NewHttpChecker(config config.Config) *HttpChecker {
+func NewHttpChecker(config *config.Config) *HttpChecker {
 	return &HttpChecker{Config: config}
 }
 
@@ -74,4 +74,3 @@ func (c *HttpChecker) validateConfig(subsystem string) (config.BackendConfig, er
 	}
 	return backendCfg, nil
 }
-
