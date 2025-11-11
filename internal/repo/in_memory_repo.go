@@ -15,13 +15,13 @@ var _ service.StatusRepo = &InMemory{}
 var ErrNotFound = errors.New("subsystem not found")
 
 type InMemory struct {
-	_mtx    sync.RWMutex
-	_storage map[string]model.Status
+	mtx     sync.RWMutex
+	storage map[string]model.Status
 }
 
 func NewInMemory() *InMemory {
 	return &InMemory{
-		_storage: make(map[string]model.Status),
+		storage: make(map[string]model.Status),
 	}
 }
 
@@ -30,10 +30,10 @@ func (im *InMemory) Get(ctx context.Context, subsystem string) (model.Status, er
 		return "", err
 	}
 
-	im._mtx.RLock()
-	defer im._mtx.RUnlock()
+	im.mtx.RLock()
+	defer im.mtx.RUnlock()
 
-	st, ok := im._storage[subsystem]
+	st, ok := im.storage[subsystem]
 	if !ok {
 		return "", ErrNotFound
 	}
@@ -46,13 +46,10 @@ func (im *InMemory) Set(ctx context.Context, subsystem string, status model.Stat
 		return err
 	}
 
-	im._mtx.Lock()
-	defer im._mtx.Unlock()
+	im.mtx.Lock()
+	defer im.mtx.Unlock()
 	
-	if im._storage == nil {
-		im._storage = make(map[string]model.Status)
-	}
-	im._storage[subsystem] = status
+	im.storage[subsystem] = status
 
 	return nil
 }
