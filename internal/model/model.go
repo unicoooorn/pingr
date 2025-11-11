@@ -24,3 +24,8 @@ type MetricsExtractorResult struct {
 	Metrics []Metric
 	Details string
 }
+
+type SubsystemInfo struct {
+	Check  CheckResult
+	Metric MetricsExtractorResult
+}

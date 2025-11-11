@@ -18,3 +18,17 @@ type Checker interface {
 type MetricsExtractor interface {
 	Extract(ctx context.Context, subsystem string) (model.MetricsExtractorResult, error)
 }
+
+type AlertGenerator interface {
+	GenerateAlertMessage(
+		ctx context.Context,
+		subsystemInfoByName map[string]model.SubsystemInfo,
+	) (string, error)
+}
+
+type AlertSender interface {
+	SendAlert(
+		ctx context.Context,
+		alertMessage string,
+	) error
+}
