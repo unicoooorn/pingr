@@ -14,3 +14,7 @@ type StatusRepo interface {
 type Checker interface {
 	Check(ctx context.Context, subsystem string) (model.CheckResult, error)
 }
+
+type MetricsExtractor interface {
+	Extract(ctx context.Context, subsystem string) (model.MetricsExtractorResult, error)
+}

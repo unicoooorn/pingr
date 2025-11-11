@@ -15,5 +15,5 @@ func TestKakDela(t *testing.T) {
 	res, err := svc.GetStatus(context.Background(), "kak dela")
 
 	assert.NoError(t, err)
-	assert.Equal(t, model.CheckResult{Status: "ok", Metrics: nil, Details: ""}, res)
+	assert.Equal(t, model.CheckResult{Status: "ok", Details: ""}, res)
 }
