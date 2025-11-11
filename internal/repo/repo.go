@@ -17,10 +17,10 @@ func NewInMemory() *InMemory {
 	return &InMemory{}
 }
 
-func (im *InMemory) Get(ctx context.Context, subsystem string) (model.Status, error) {
+func (im *InMemory) Get(ctx context.Context, subsystem string) (model.CheckResult, error) {
 	panic("unimplemented")
 }
 
-func (im *InMemory) Set(ctx context.Context, subsystem string, status model.Status) error {
+func (im *InMemory) Set(ctx context.Context, subsystem string, status model.CheckResult) error {
 	panic("unimplemented")
 }
