@@ -1,10 +1,26 @@
 package model
 
-// это так выглядит подобие енамов в го :)
-// https://dizzy.zone/2024/01/26/Enums-in-Go/
-type Status string
+type PingStatus string
 
 const (
-	StatusOk    Status = "ok"
-	StatusNotOk Status = "not_ok"
+	PingStatusOk    PingStatus = "ok"
+	PingStatusNotOk PingStatus = "not_ok"
 )
+
+type Metric struct {
+	Name   string
+	Value  float64
+	Labels map[string]string
+}
+
+// Результат работы Checker
+type CheckResult struct {
+	Status  PingStatus
+	Details string
+}
+
+// Результат работы  MetricsExtractor
+type MetricsExtractorResult struct {
+	Metrics []Metric
+	Details string
+}

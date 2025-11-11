@@ -7,10 +7,14 @@ import (
 )
 
 type StatusRepo interface {
-	Get(ctx context.Context, subsystem string) (model.Status, error)
-	Set(ctx context.Context, subsystem string, status model.Status) error
+	Get(ctx context.Context, subsystem string) (model.CheckResult, error)
+	Set(ctx context.Context, subsystem string, status model.CheckResult) error
 }
 
 type Checker interface {
-	Check(ctx context.Context, subsystem string) (model.Status, error)
+	Check(ctx context.Context, subsystem string) (model.CheckResult, error)
+}
+
+type MetricsExtractor interface {
+	Extract(ctx context.Context, subsystem string) (model.MetricsExtractorResult, error)
 }

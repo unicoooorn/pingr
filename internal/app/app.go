@@ -24,7 +24,7 @@ func Run(ctx context.Context, cfg config.Config) error {
 	return scheduler.NewFixedIntervalScheduler(
 		service.New(
 			repo.NewInMemory(),
-			checker.NewRest(),
+			checker.NewHttpGetChecker(cfg),
 		),
 	).StartMonitoring(ctx)
 }

@@ -16,18 +16,18 @@ var ErrNotFound = errors.New("subsystem not found")
 
 type InMemory struct {
 	mtx     sync.RWMutex
-	storage map[string]model.Status
+	storage map[string]model.CheckResult
 }
 
 func NewInMemory() *InMemory {
 	return &InMemory{
-		storage: make(map[string]model.Status),
+		storage: make(map[string]model.CheckResult),
 	}
 }
 
-func (im *InMemory) Get(ctx context.Context, subsystem string) (model.Status, error) {
+func (im *InMemory) Get(ctx context.Context, subsystem string) (model.CheckResult, error) {
 	if err := ctx.Err(); err != nil {
-		return "", err
+		return model.CheckResult{}, err
 	}
 
 	im.mtx.RLock()
@@ -35,13 +35,13 @@ func (im *InMemory) Get(ctx context.Context, subsystem string) (model.Status, er
 
 	st, ok := im.storage[subsystem]
 	if !ok {
-		return "", ErrNotFound
+		return model.CheckResult{}, ErrNotFound
 	}
 
 	return st, nil
 }
 
-func (im *InMemory) Set(ctx context.Context, subsystem string, status model.Status) error {
+func (im *InMemory) Set(ctx context.Context, subsystem string, status model.CheckResult) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
