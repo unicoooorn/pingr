@@ -18,17 +18,23 @@ type Service interface {
 }
 
 type serviceImpl struct {
-	repo    StatusRepo
-	checker Checker
+	repo           StatusRepo
+	checker        Checker
+	alertSender    AlertSender
+	alertGenerator AlertGenerator
 }
 
 func New(
 	repo StatusRepo,
 	checker Checker,
+	alertSender AlertSender,
+	alertGenerator AlertGenerator,
 ) *serviceImpl {
 	return &serviceImpl{
-		repo:    repo,
-		checker: checker,
+		repo:           repo,
+		checker:        checker,
+		alertSender:    alertSender,
+		alertGenerator: alertGenerator,
 	}
 }
 
