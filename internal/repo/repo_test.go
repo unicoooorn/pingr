@@ -15,7 +15,7 @@ func TestInMemory_SetGet(t *testing.T) {
 	im := NewInMemory()
 
 	sub := "subsys1"
-	want := model.Status("ok")
+	want := model.CheckResult{Status: "ok"}
 
 	if err := im.Set(ctx, sub, want); err != nil {
 		t.Fatalf("Set returned error: %v", err)
@@ -58,7 +58,7 @@ func TestInMemory_Concurrent(t *testing.T) {
 			defer wg.Done()
 			key := fmt.Sprintf("k-%d", id%10)
 			for range make([]struct{}, ops_per_goroutine) {
-				if err := im.Set(ctx, key, model.Status("ok")); err != nil {
+				if err := im.Set(ctx, key, model.CheckResult{Status: "ok"}); err != nil {
 					t.Errorf("Set error: %v", err)
 					return
 				}
