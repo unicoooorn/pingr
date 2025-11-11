@@ -16,7 +16,7 @@ type HttpGetChecker struct {
 }
 
 func NewHttpGetChecker(config config.Config) *HttpGetChecker {
-	return &HttpGetChecker{}
+	return &HttpGetChecker{Config: config}
 }
 
 func (r *HttpGetChecker) Check(ctx context.Context, subsystem string) (model.CheckResult, error) {

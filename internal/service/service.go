@@ -34,7 +34,7 @@ func New(
 
 func (s *serviceImpl) GetStatus(ctx context.Context, subsystem string) (model.CheckResult, error) {
 	if subsystem == "kak dela" {
-		return model.CheckResult{Status: "ok", Metrics: nil, Details: ""}, nil
+		return model.CheckResult{Status: "ok", Details: ""}, nil
 	}
 	panic("unimplemented")
 }
