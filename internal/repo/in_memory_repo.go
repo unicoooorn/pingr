@@ -2,6 +2,8 @@ package repo
 
 import (
 	"context"
+	"errors"
+	"sync"
 
 	"github.com/unicoooorn/pingr/internal/model"
 	"github.com/unicoooorn/pingr/internal/service"
@@ -10,17 +12,44 @@ import (
 // статическая проверка на то что ваша структура соответствует интерфейсу
 var _ service.StatusRepo = &InMemory{}
 
+var ErrNotFound = errors.New("subsystem not found")
+
 type InMemory struct {
+	mtx     sync.RWMutex
+	storage map[string]model.Status
 }
 
 func NewInMemory() *InMemory {
-	return &InMemory{}
+	return &InMemory{
+		storage: make(map[string]model.Status),
+	}
 }
 
 func (im *InMemory) Get(ctx context.Context, subsystem string) (model.Status, error) {
-	panic("unimplemented")
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+
+	im.mtx.RLock()
+	defer im.mtx.RUnlock()
+
+	st, ok := im.storage[subsystem]
+	if !ok {
+		return "", ErrNotFound
+	}
+
+	return st, nil
 }
 
 func (im *InMemory) Set(ctx context.Context, subsystem string, status model.Status) error {
-	panic("unimplemented")
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	im.mtx.Lock()
+	defer im.mtx.Unlock()
+	
+	im.storage[subsystem] = status
+
+	return nil
 }
