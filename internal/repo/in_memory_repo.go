@@ -25,7 +25,7 @@ func NewInMemory() *InMemory {
 	}
 }
 
-func (im *InMemory) Get(ctx context.Context, subsystem string) (model.Status, error) {
+func (im *InMemory) Get(ctx context.Context, subsystem string) (model.CheckResult, error) {
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
@@ -41,7 +41,7 @@ func (im *InMemory) Get(ctx context.Context, subsystem string) (model.Status, er
 	return st, nil
 }
 
-func (im *InMemory) Set(ctx context.Context, subsystem string, status model.Status) error {
+func (im *InMemory) Set(ctx context.Context, subsystem string, status model.CheckResult) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -52,4 +52,3 @@ func (im *InMemory) Set(ctx context.Context, subsystem string, status model.Stat
 	im.storage[subsystem] = status
 
 	return nil
-}
