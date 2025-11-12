@@ -10,7 +10,7 @@ import (
 )
 
 func TestKakDela(t *testing.T) {
-	svc := service.New(nil, nil)
+	svc := service.New(nil, nil, nil, nil)
 
 	res, err := svc.GetStatus(context.Background(), "kak dela")
 
