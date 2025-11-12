@@ -10,11 +10,8 @@ type Service interface {
 	// GetStatus отдаёт закэшированный статуса подсистемы
 	GetStatus(ctx context.Context, subsystem string) (model.CheckResult, error)
 
-	// RefreshStatus обновляет статус подсистемы: 1) проверяет статус 2) сохраняет статус в кэш
-	RefreshStatus(ctx context.Context, subsystem string) error
-
-	// GetSubsystems возвращает список всех зарегистрированных подсистем
-	GetSubsystems(ctx context.Context) ([]string, error)
+	// InitiateCheck инициирует проверку статуса всех подсистем
+	InitiateCheck(ctx context.Context) error
 }
 
 type serviceImpl struct {
@@ -45,10 +42,6 @@ func (s *serviceImpl) GetStatus(ctx context.Context, subsystem string) (model.Ch
 	panic("unimplemented")
 }
 
-func (s *serviceImpl) RefreshStatus(ctx context.Context, subsystem string) error {
-	panic("unimplemented")
-}
-
-func (s *serviceImpl) GetSubsystems(ctx context.Context) ([]string, error) {
+func (s *serviceImpl) InitiateCheck(ctx context.Context) error {
 	panic("unimplemented")
 }
