@@ -27,22 +27,20 @@ Your task is to analyze the provided data about service health, dependencies, an
 ` + "`" + "`" + "`" + `yaml
 {{.ServiceDeps}}
 ` + "`" + "`" + "`" + `
-## 2. Incident Snapshot (Service Statuses)
-| Service                   | Status |
-| ------------------------- | ------ |
+## 2. Service Statuses
 {{.ServiceStatusesTable}}
-## 3. Related Metrics (last 10 minutes)
+## 3. Related Metrics
 The following metrics are pulled from Prometheus for each affected service.
 ` + "`" + "`" + "`" + `yaml
 {{.ServiceMetrics}}
 ` + "`" + "`" + "`" + `
 ## 4. Task
 Using the data above, perform a root cause analysis.
-Your response must include:
-	- Human-readable Root Cause Summary
-	- Reasoning
-	- Evidence
+Your response should consist of exactly the following:
+	- Root Cause Summary - the most probable service or metric degradation that triggered the incident.
+	- Suggested Remediation – what actions should be taken to resolve the root issue or prevent recurrence.
 ## 5. Notes
+- Answer concisely. No more than a few sentences for each point.
 - If several services failed simultaneously, prioritize identifying the one they depend on.
 - If all dependencies are healthy, analyze metrics for performance degradation or latency spikes.
 - Use the dependency graph to reason causally about failure propagation.`
@@ -115,7 +113,7 @@ func buildPrompt(config *config.Config, subsystemInfoByName map[string]model.Sub
 	// Build statuses table
 	var sb strings.Builder
 	for name, data := range subsystemInfoByName {
-		sb.WriteString(fmt.Sprintf("| %s | %s |\n", name, data.Check.Status))
+		sb.WriteString(fmt.Sprintf("|%-10s| %6s |\n", name, data.Check.Status))
 	}
 	statusTable := sb.String()
 
