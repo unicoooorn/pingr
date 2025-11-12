@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
-	"errors"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	
+
 	"github.com/unicoooorn/pingr/internal/service"
 )
 
@@ -42,6 +42,7 @@ type sendPayload struct {
 func (l *tgApi) SendAlert(
 	ctx context.Context,
 	alertMessage string,
+	_ []byte, // todo: handle image
 ) error {
 	if err := ctx.Err(); err != nil {
 		return err
