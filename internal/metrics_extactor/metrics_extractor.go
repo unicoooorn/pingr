@@ -28,12 +28,8 @@ func NewPrometheusMetricsExtractor(cfg config.PrometheusConfig) (*PrometheusMetr
 	}
 
 	httpClient := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: cfg.Timeout,
 	}
-	if cfg.Timeout > 0 {
-		httpClient.Timeout = time.Duration(cfg.Timeout)
-	}
-
 	if len(cfg.Headers) > 0 {
 		httpClient.Transport = &headerRoundTripper{
 			headers: cfg.Headers,
