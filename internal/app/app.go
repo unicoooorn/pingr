@@ -2,12 +2,12 @@ package app
 
 import (
 	"context"
+	"time"
 
 	"github.com/unicoooorn/pingr/internal/alert/generator"
 	"github.com/unicoooorn/pingr/internal/alert/sender"
 	"github.com/unicoooorn/pingr/internal/checker"
 	"github.com/unicoooorn/pingr/internal/config"
-	"github.com/unicoooorn/pingr/internal/repo"
 	"github.com/unicoooorn/pingr/internal/scheduler"
 	"github.com/unicoooorn/pingr/internal/service"
 )
@@ -25,10 +25,13 @@ func Run(ctx context.Context, cfg config.Config) error {
 
 	return scheduler.NewFixedIntervalScheduler(
 		service.New(
-			repo.NewInMemory(),
 			checker.NewChecker(&cfg),
 			sender.NewTgApi("todo", "todo", "todo"),
 			generator.NewLLMApi("todo", "todo"),
+			nil, // todo: add renderer
+			nil, // todo add metrics extractor
+			cfg,
 		),
+		10*time.Second,
 	).StartMonitoring(ctx)
 }

@@ -42,7 +42,7 @@ func TestSender_SendAlert_Success(t *testing.T) {
 	api := NewTgApi(server.URL, "token", "chat123")
 	ctx := context.Background()
 	msg := "hello world"
-	if err := api.SendAlert(ctx, msg); err != nil {
+	if err := api.SendAlert(ctx, msg, nil); err != nil {
 		t.Fatalf("SendAlert returned error: %v", err)
 	}
 
@@ -64,7 +64,7 @@ func TestSender_SendAlert_Non200(t *testing.T) {
 
 	api := NewTgApi(server.URL, "token", "chat123")
 	ctx := context.Background()
-	if err := api.SendAlert(ctx, "x"); err == nil {
+	if err := api.SendAlert(ctx, "x", nil); err == nil {
 		t.Fatalf("expected error for non-200 response, got nil")
 	} else {
 		if !strings.Contains(err.Error(), "tg api returned status") {
@@ -86,11 +86,11 @@ func TestSender_SendAlert_ContextCancel(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
 	defer cancel()
 
-	err := api.SendAlert(ctx, "x")
+	err := api.SendAlert(ctx, "x", nil)
 	if err == nil {
 		t.Fatalf("expected error due to context timeout, got nil")
 	}
-	
+
 	if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
 		t.Fatalf("expected context cancellation error, got: %v", err)
 	}
