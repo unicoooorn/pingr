@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strings"
+	"time"
 
 	validatorPkg "github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
@@ -16,7 +17,7 @@ type BackendConfig struct {
 	Type     string                 `yaml:"type" mapstructure:"type"`
 	Deps     []string               `yaml:"deps" mapstructure:"deps"`
 	URL      string            			`yaml:"url" mapstructure:"url"`
-	Timeout  int               			`yaml:"timeout" mapstructure:"timeout"`
+	Timeout  time.Duration          `yaml:"timeout" mapstructure:"timeout"`
 	Host     string            			`yaml:"host" mapstructure:"host"`
 	Port     int               			`yaml:"port" mapstructure:"port"`
 	Headers  map[string]string 			`yaml:"headers" mapstructure:"headers"`

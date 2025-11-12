@@ -29,6 +29,9 @@ func run(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
+	if err := config.ValidateConfig(cfg); err != nil {
+    return fmt.Errorf("Config error: %v", err)
+	}
 
 	return app.Run(ctx, *cfg)
 }

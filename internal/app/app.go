@@ -26,7 +26,7 @@ func Run(ctx context.Context, cfg config.Config) error {
 	return scheduler.NewFixedIntervalScheduler(
 		service.New(
 			repo.NewInMemory(),
-			checker.NewHttpGetChecker(cfg),
+			checker.NewChecker(&cfg),
 			sender.NewTgApi("todo", "todo", "todo"),
 			generator.NewLLMApi("todo", "todo"),
 		),
