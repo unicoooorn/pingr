@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 
+	"github.com/unicoooorn/pingr/internal/alert/generator"
+	"github.com/unicoooorn/pingr/internal/alert/sender"
 	"github.com/unicoooorn/pingr/internal/checker"
 	"github.com/unicoooorn/pingr/internal/config"
 	"github.com/unicoooorn/pingr/internal/repo"
@@ -25,6 +27,8 @@ func Run(ctx context.Context, cfg config.Config) error {
 		service.New(
 			repo.NewInMemory(),
 			checker.NewHttpGetChecker(cfg),
+			sender.NewTgApi("todo", "todo", "todo"),
+			generator.NewLLMApi("todo", "todo"),
 		),
 	).StartMonitoring(ctx)
 }
