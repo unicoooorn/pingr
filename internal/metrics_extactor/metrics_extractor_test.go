@@ -115,11 +115,10 @@ func TestPrometheusMetricsExtractor_Extract(t *testing.T) {
 	result, err := extractor.Extract(context.Background(), "myapi", cfg.Backends["myapi"].MetricsQueries)
 	require.NoError(t, err)
 
-	// Проверяем что service label был автоматически добавлен во все запросы
+	// Проверяем что получили правильное количество запросов
 	require.Len(t, receivedQueries, 2, "Should have received 2 queries")
-	for _, q := range receivedQueries {
-		assert.Contains(t, q, `service="myapi"`, "Query should contain injected service label")
-	}
+	assert.Equal(t, "up", receivedQueries[0])
+	assert.Equal(t, "http_requests_total", receivedQueries[1])
 
 	// Проверяем результаты
 	assert.Len(t, result.Metrics, 3) // 1 from "up" + 2 from "http_requests_total"
@@ -129,6 +128,7 @@ func TestPrometheusMetricsExtractor_Extract(t *testing.T) {
 	upMetric := result.Metrics[0]
 	assert.Equal(t, "up", upMetric.Name)
 	assert.Equal(t, 1.0, upMetric.Value)
+	// Labels are returned as-is from Prometheus mock response
 	assert.Equal(t, "myapi", upMetric.Labels["service"])
 	assert.Equal(t, "prometheus", upMetric.Labels["job"])
 
@@ -138,6 +138,7 @@ func TestPrometheusMetricsExtractor_Extract(t *testing.T) {
 
 	for _, m := range requestMetrics {
 		assert.Equal(t, "http_requests_total", m.Name)
+		// Labels come from Prometheus response, not injected by our code
 		assert.Equal(t, "myapi", m.Labels["service"])
 		assert.Contains(t, []string{"GET", "POST"}, m.Labels["method"])
 	}
@@ -254,53 +255,6 @@ func TestPrometheusMetricsExtractor_Extract_QueryFailure(t *testing.T) {
 	assert.Empty(t, result.Metrics)
 }
 
-func TestPrometheusMetricsExtractor_InjectServiceLabel(t *testing.T) {
-	tests := []struct {
-		name      string
-		query     string
-		subsystem string
-		expected  string
-	}{
-		{
-			name:      "simple metric",
-			query:     "up",
-			subsystem: "myapi",
-			expected:  `up{service="myapi"}`,
-		},
-		{
-			name:      "metric with empty selector",
-			query:     "up{}",
-			subsystem: "myapi",
-			expected:  `up{service="myapi"}`,
-		},
-		{
-			name:      "metric with existing labels",
-			query:     "up{job='prometheus'}",
-			subsystem: "myapi",
-			expected:  `up{service="myapi",job='prometheus'}`,
-		},
-		{
-			name:      "metric with service label already present",
-			query:     "up{service='other'}",
-			subsystem: "myapi",
-			expected:  `up{service='other'}`, // не меняем
-		},
-		{
-			name:      "metric with multiple labels",
-			query:     "http_requests_total{method='GET',status='200'}",
-			subsystem: "myapi",
-			expected:  `http_requests_total{service="myapi",method='GET',status='200'}`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := addServiceLabel(tt.query, tt.subsystem)
-			assert.Equal(t, tt.expected, result)
-		})
-	}
-}
-
 func TestPrometheusMetricsExtractor_ConvertToMetrics_Scalar(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
@@ -378,7 +332,7 @@ func TestHeaderRoundTripper(t *testing.T) {
 }
 
 func TestPrometheusMetricsExtractor_MultipleBackends(t *testing.T) {
-	// Тестируем что разные backends получают разные service labels
+	// Тестируем что запросы от разных backends обрабатываются корректно
 	var lastQuery string
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
@@ -415,7 +369,7 @@ func TestPrometheusMetricsExtractor_MultipleBackends(t *testing.T) {
 				MetricsQueries: []string{"up"},
 			},
 			"backend2": {
-				MetricsQueries: []string{"up"},
+				MetricsQueries: []string{"up{service='backend2'}"},
 			},
 		},
 	}
@@ -426,12 +380,12 @@ func TestPrometheusMetricsExtractor_MultipleBackends(t *testing.T) {
 	// Извлекаем метрики для backend1
 	_, err = extractor.Extract(context.Background(), "backend1", cfg.Backends["backend1"].MetricsQueries)
 	require.NoError(t, err)
-	assert.Contains(t, lastQuery, `service="backend1"`)
+	assert.Equal(t, "up", lastQuery, "Query should be forwarded as-is")
 
 	// Извлекаем метрики для backend2
 	_, err = extractor.Extract(context.Background(), "backend2", cfg.Backends["backend2"].MetricsQueries)
 	require.NoError(t, err)
-	assert.Contains(t, lastQuery, `service="backend2"`)
+	assert.Equal(t, "up{service='backend2'}", lastQuery, "Query should be forwarded as-is with user-specified labels")
 }
 
 // Вспомогательная функция для проверки подстроки

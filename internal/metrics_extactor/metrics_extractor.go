@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/api"
@@ -62,9 +61,7 @@ func (p *PrometheusMetricsExtractor) Extract(ctx context.Context, subsystem stri
 	var errors []string
 
 	for _, queryExpr := range queries {
-		enhancedQuery := addServiceLabel(queryExpr, subsystem)
-
-		metrics, err := p.queryMetrics(ctx, enhancedQuery)
+		metrics, err := p.queryMetrics(ctx, queryExpr)
 		if err != nil {
 			errors = append(errors, fmt.Sprintf("query %q: %v", queryExpr, err))
 			continue
@@ -81,36 +78,6 @@ func (p *PrometheusMetricsExtractor) Extract(ctx context.Context, subsystem stri
 		Metrics: allMetrics,
 		Details: details,
 	}, nil
-}
-
-func addServiceLabel(query, subsystem string) string {
-	if strings.Contains(query, "service=") {
-		return query
-	}
-
-	label := fmt.Sprintf(`service="%s"`, subsystem)
-
-	// Простая эвристика: ищем первое имя метрики и добавляем label
-	// Поддерживаем случаи: metric, metric{}, metric{label="value"}
-	for i, r := range query {
-		if r == '{' {
-			inner := ""
-			if i+1 < len(query) && query[i+1] != '}' {
-				inner = ","
-			}
-			return query[:i+1] + label + inner + query[i+1:]
-		}
-		if !isMetricNameChar(r) && i > 0 {
-			return query[:i] + "{" + label + "}" + query[i:]
-		}
-	}
-
-	return query + "{" + label + "}"
-}
-
-func isMetricNameChar(r rune) bool {
-	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
-		(r >= '0' && r <= '9') || r == '_' || r == ':'
 }
 
 func (p *PrometheusMetricsExtractor) queryMetrics(ctx context.Context, query string) ([]internalModel.Metric, error) {

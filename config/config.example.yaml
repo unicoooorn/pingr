@@ -12,38 +12,38 @@ backends:
     url: "http://api.example.com:8080"
     timeout: 10
     metrics_queries:
-      - "up"
-      - "http_requests_total"
-      - "rate(http_requests_total[5m])"
-      - "http_request_duration_seconds{quantile='0.95'}"
-      - "http_requests_total{status=~'5..'}"
+      - "up{service='api'}"
+      - "http_requests_total{service='api'}"
+      - "rate(http_requests_total{service='api'}[5m])"
+      - "http_request_duration_seconds{service='api',quantile='0.95'}"
+      - "http_requests_total{service='api',status=~'5..'}"
 
   postgres:
     type: postgres
     url: "postgres://localhost:5432/mydb"
     timeout: 10
     metrics_queries:
-      - "up"
-      - "pg_stat_activity_count"
-      - "rate(pg_stat_database_xact_commit[5m])"
-      - "pg_database_size_bytes"
+      - "up{service='postgres'}"
+      - "pg_stat_activity_count{service='postgres'}"
+      - "rate(pg_stat_database_xact_commit{service='postgres'}[5m])"
+      - "pg_database_size_bytes{service='postgres'}"
 
   redis:
     type: redis
     url: "redis://localhost:6379"
     timeout: 5
     metrics_queries:
-      - "up"
-      - "redis_connected_clients"
-      - "redis_memory_used_bytes"
-      - "rate(redis_commands_processed_total[5m])"
+      - "up{service='redis'}"
+      - "redis_connected_clients{service='redis'}"
+      - "redis_memory_used_bytes{service='redis'}"
+      - "rate(redis_commands_processed_total{service='redis'}[5m])"
 
   self:
     type: local
     url: "http://localhost:8080"
     deps: ["api"]
     metrics_queries:
-      - "process_cpu_seconds_total"
-      - "process_resident_memory_bytes"
-      - "go_goroutines"
-      - "go_memstats_alloc_bytes"
+      - "process_cpu_seconds_total{service='self'}"
+      - "process_resident_memory_bytes{service='self'}"
+      - "go_goroutines{service='self'}"
+      - "go_memstats_alloc_bytes{service='self'}"
