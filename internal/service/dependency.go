@@ -30,7 +30,12 @@ type AlertSender interface {
 	SendAlert(
 		ctx context.Context,
 		alertMessage string,
+		infographics []byte,
 	) error
 
 	Poll(ctx context.Context) (starts []string, stops []string, err error)
+}
+
+type InfographicsRenderer interface {
+	Render(ctx context.Context, infos []model.SubsystemInfo) ([]byte, error)
 }
