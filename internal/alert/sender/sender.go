@@ -7,8 +7,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+	"errors"
 	"strings"
 
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	
 	"github.com/unicoooorn/pingr/internal/service"
 )
 
@@ -78,4 +82,68 @@ func (l *tgApi) SendAlert(
 	}
 
 	return nil
+}
+
+func (l *tgApi) Poll(ctx context.Context) (starts []string, stops []string, err error) {
+	bot, err := tgbotapi.NewBotAPI(l.token)
+	if err != nil {
+		return nil, nil, fmt.Errorf("create bot api: %w", err)
+	}
+
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 30
+	updates := bot.GetUpdatesChan(u)
+	defer bot.StopReceivingUpdates()
+
+	return collectFromUpdates(ctx, updates)
+}
+
+func collectFromUpdates(ctx context.Context, updates <-chan tgbotapi.Update) (starts []string, stops []string, err error) {
+	startSet := make(map[string]struct{})
+	stopSet := make(map[string]struct{})
+
+	for {
+		select {
+		case <-ctx.Done():
+			return mapKeys(startSet), mapKeys(stopSet), ctx.Err()
+		case upd, ok := <-updates:
+			if !ok {
+				return mapKeys(startSet), mapKeys(stopSet), errors.New("updates channel closed")
+			}
+
+			if upd.Message == nil {
+				continue
+			}
+
+			chatID := upd.Message.Chat.ID
+			chatIDStr := strconv.FormatInt(chatID, 10)
+
+			text := strings.TrimSpace(upd.Message.Text)
+			if text == "" {
+				continue
+			}
+			if text[0] != '/' {
+				continue
+			}
+
+			cmd := strings.ToLower(strings.TrimPrefix(strings.SplitN(text, " ", 2)[0], "/"))
+
+			switch cmd {
+			case "start":
+				startSet[chatIDStr] = struct{}{}
+			case "stop":
+				stopSet[chatIDStr] = struct{}{}
+			default:
+				// ignore other commands
+			}
+		}
+	}
+}
+
+func mapKeys(m map[string]struct{}) []string {
+	res := make([]string, 0, len(m))
+	for k := range m {
+		res = append(res, k)
+	}
+	return res
 }

@@ -10,6 +10,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 // Test successful POST to Telegram API: handler decodes JSON and returns 200.
@@ -91,5 +93,74 @@ func TestSender_SendAlert_ContextCancel(t *testing.T) {
 	
 	if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
 		t.Fatalf("expected context cancellation error, got: %v", err)
+	}
+}
+
+func contains(slice []string, v string) bool {
+	for _, x := range slice {
+		if x == v {
+			return true
+		}
+	}
+	return false
+}
+
+func TestCollectFromUpdates_StartStop(t *testing.T) {
+	updates := make(chan tgbotapi.Update)
+
+	go func() {
+		u1 := tgbotapi.Update{Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 1001}, Text: "/start"}}
+		updates <- u1
+		updates <- u1
+
+		u2 := tgbotapi.Update{Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 2002}, Text: "/stop"}}
+		updates <- u2
+
+		u3 := tgbotapi.Update{Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 3003}, Text: "hello"}}
+		updates <- u3
+
+		close(updates)
+	}()
+
+	ctx := context.Background()
+	starts, stops, err := collectFromUpdates(ctx, updates)
+	if err == nil || err.Error() != "updates channel closed" {
+		t.Fatalf("expected updates channel closed error, got %v", err)
+	}
+
+	if !contains(starts, "1001") {
+		t.Fatalf("starts missing 1001: %#v", starts)
+	}
+	if !contains(stops, "2002") {
+		t.Fatalf("stops missing 2002: %#v", stops)
+	}
+	if contains(starts, "3003") || contains(stops, "3003") {
+		t.Fatalf("non-command chat unexpectedly present")
+	}
+}
+
+func TestCollectFromUpdates_ContextCancel(t *testing.T) {
+	updates := make(chan tgbotapi.Update)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	done := make(chan struct{})
+	var starts, stops []string
+	var err error
+	go func() {
+		starts, stops, err = collectFromUpdates(ctx, updates)
+		close(done)
+	}()
+
+	time.Sleep(10 * time.Millisecond)
+	cancel()
+
+	<-done
+
+	if !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("expected context cancel error, got %v", err)
+	}
+	if len(starts) != 0 || len(stops) != 0 {
+		t.Fatalf("expected no starts/stops on cancel, got starts=%v stops=%v", starts, stops)
 	}
 }

@@ -31,4 +31,6 @@ type AlertSender interface {
 		ctx context.Context,
 		alertMessage string,
 	) error
+
+	Poll(ctx context.Context) (starts []string, stops []string, err error)
 }
