@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"strings"
 
 	"github.com/unicoooorn/pingr/internal/config"
 	"github.com/unicoooorn/pingr/internal/model"
@@ -32,7 +33,7 @@ func (r *CheckerImpl) Check(ctx context.Context, subsystem string) (model.CheckR
 	timeout := time.Duration(subsystem_cfg.Timeout) * time.Second
 	addr := fmt.Sprintf("%s:%d", subsystem_cfg.Host, subsystem_cfg.Port)
 
-	switch subsystem_cfg.Type {
+	switch strings.ToLower(subsystem_cfg.Type) {
 	case "http":
 		if subsystem_cfg.URL == "" {
 			return model.CheckResult{}, fmt.Errorf("http checker: missing url")
