@@ -3,7 +3,6 @@ package checker
 import (
 	"context"
 	"fmt"
-	"time"
 	"strings"
 
 	"github.com/unicoooorn/pingr/internal/config"
@@ -30,7 +29,6 @@ func (r *CheckerImpl) Check(ctx context.Context, subsystem string) (model.CheckR
 		return model.CheckResult{Status: model.PingStatusNotOk, Details: "type empty"}, fmt.Errorf("type empty or not found for '%s'", subsystem)
 	}
 
-	timeout := time.Duration(subsystem_cfg.Timeout) * time.Second
 	addr := fmt.Sprintf("%s:%d", subsystem_cfg.Host, subsystem_cfg.Port)
 
 	switch strings.ToLower(subsystem_cfg.Type) {
@@ -38,32 +36,32 @@ func (r *CheckerImpl) Check(ctx context.Context, subsystem string) (model.CheckR
 		if subsystem_cfg.URL == "" {
 			return model.CheckResult{}, fmt.Errorf("http checker: missing url")
 		}
-		return CheckHttpHealth(ctx, subsystem_cfg.URL, subsystem_cfg.Headers, timeout)
+		return CheckHttpHealth(ctx, subsystem_cfg.URL, subsystem_cfg.Headers, subsystem_cfg.Timeout)
 	case "grpc":
 		if subsystem_cfg.URL == "" {
 			return model.CheckResult{}, fmt.Errorf("postgres checker: missing url (DSN)")
 		}
-		return CheckGrpcHealth(ctx, addr, timeout)
+		return CheckGrpcHealth(ctx, addr, subsystem_cfg.Timeout)
 	case "icmp":
 		if subsystem_cfg.Host == "" {
 			return model.CheckResult{}, fmt.Errorf("icmp checker: missing host")
 		}
-		return CheckIcmpHealth(ctx, subsystem_cfg.Host, timeout)
+		return CheckIcmpHealth(ctx, subsystem_cfg.Host, subsystem_cfg.Timeout)
 	case "tcp":
 		if subsystem_cfg.Host == "" || subsystem_cfg.Port == 0 {
 			return model.CheckResult{}, fmt.Errorf("tcp checker: missing host and/or port")
 		}
-		return CheckTcpHealth(ctx, subsystem_cfg.Host, subsystem_cfg.Port, timeout)
+		return CheckTcpHealth(ctx, subsystem_cfg.Host, subsystem_cfg.Port, subsystem_cfg.Timeout)
 	case "redis":
 		if subsystem_cfg.Host == "" || subsystem_cfg.Port == 0 {
 			return model.CheckResult{}, fmt.Errorf("redis checker: missing host and/or port")
 		}
-		return CheckRedisHealth(ctx, addr, timeout)
+		return CheckRedisHealth(ctx, addr, subsystem_cfg.Timeout)
 	case "postgres":
 		if subsystem_cfg.URL == "" {
 			return model.CheckResult{}, fmt.Errorf("postgres checker: missing url (DSN)")
 		}
-		return CheckPostgresHealth(ctx, subsystem_cfg.URL, timeout)
+		return CheckPostgresHealth(ctx, subsystem_cfg.URL, subsystem_cfg.Timeout)
 	default:
 		return model.CheckResult{}, fmt.Errorf("unknown backend type: '%s'", subsystem_cfg.Type)
 	}

@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,7 +25,7 @@ backends:
     type: http
     deps: []
     url: ${API_URL}
-    timeout: 15
+    timeout: 15s
     host: "example.com"
     port: 8080
     headers:
@@ -52,7 +53,7 @@ backends:
 	assert.Equal(t, "http", api.Type)
 	assert.Equal(t, []string{}, api.Deps)
 	assert.Equal(t, "https://api.example.com", api.URL)
-	assert.Equal(t, 15, api.Timeout) // Проверяет, что YAML имеет больший приоритет чем переменная окружения
+	assert.Equal(t, 15 * time.Second, api.Timeout) // Проверяет, что YAML имеет больший приоритет чем переменная окружения
 	assert.Equal(t, "example.com", api.Host)
 	assert.Equal(t, 8080, api.Port)
 	assert.Equal(t, map[string]string{
@@ -64,7 +65,7 @@ backends:
 	assert.Equal(t, "local", local.Type)
 	assert.Equal(t, []string{"myapi"}, local.Deps)
 	assert.Equal(t, "file:///tmp/local", local.URL)
-	assert.Equal(t, 0, local.Timeout)
+	assert.Equal(t, time.Duration(0), local.Timeout)
 	assert.Equal(t, "localhost", local.Host)
 	assert.Equal(t, 0, local.Port)
 	assert.Nil(t, local.Headers)
