@@ -117,6 +117,7 @@ func (s *serviceImpl) alert(ctx context.Context, statuses map[string]model.Check
 		metricsRes, err := s.metricsExtractor.Extract(
 			ctx,
 			backend,
+			s.cfg.Backends[backend].MetricsQueries,
 		)
 		if err != nil {
 			return fmt.Errorf("extarct metrics: %w", err)

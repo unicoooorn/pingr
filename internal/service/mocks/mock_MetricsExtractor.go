@@ -39,8 +39,8 @@ func (_m *MockMetricsExtractor) EXPECT() *MockMetricsExtractor_Expecter {
 }
 
 // Extract provides a mock function for the type MockMetricsExtractor
-func (_mock *MockMetricsExtractor) Extract(ctx context.Context, subsystem string) (model.MetricsExtractorResult, error) {
-	ret := _mock.Called(ctx, subsystem)
+func (_mock *MockMetricsExtractor) Extract(ctx context.Context, backend string, queries []string) (model.MetricsExtractorResult, error) {
+	ret := _mock.Called(ctx, backend, queries)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Extract")
@@ -48,16 +48,16 @@ func (_mock *MockMetricsExtractor) Extract(ctx context.Context, subsystem string
 
 	var r0 model.MetricsExtractorResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (model.MetricsExtractorResult, error)); ok {
-		return returnFunc(ctx, subsystem)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, []string) (model.MetricsExtractorResult, error)); ok {
+		return returnFunc(ctx, backend, queries)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) model.MetricsExtractorResult); ok {
-		r0 = returnFunc(ctx, subsystem)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, []string) model.MetricsExtractorResult); ok {
+		r0 = returnFunc(ctx, backend, queries)
 	} else {
 		r0 = ret.Get(0).(model.MetricsExtractorResult)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, subsystem)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, []string) error); ok {
+		r1 = returnFunc(ctx, backend, queries)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -71,12 +71,13 @@ type MockMetricsExtractor_Extract_Call struct {
 
 // Extract is a helper method to define mock.On call
 //   - ctx context.Context
-//   - subsystem string
-func (_e *MockMetricsExtractor_Expecter) Extract(ctx interface{}, subsystem interface{}) *MockMetricsExtractor_Extract_Call {
-	return &MockMetricsExtractor_Extract_Call{Call: _e.mock.On("Extract", ctx, subsystem)}
+//   - backend string
+//   - queries []string
+func (_e *MockMetricsExtractor_Expecter) Extract(ctx interface{}, backend interface{}, queries interface{}) *MockMetricsExtractor_Extract_Call {
+	return &MockMetricsExtractor_Extract_Call{Call: _e.mock.On("Extract", ctx, backend, queries)}
 }
 
-func (_c *MockMetricsExtractor_Extract_Call) Run(run func(ctx context.Context, subsystem string)) *MockMetricsExtractor_Extract_Call {
+func (_c *MockMetricsExtractor_Extract_Call) Run(run func(ctx context.Context, backend string, queries []string)) *MockMetricsExtractor_Extract_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -86,9 +87,14 @@ func (_c *MockMetricsExtractor_Extract_Call) Run(run func(ctx context.Context, s
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 []string
+		if args[2] != nil {
+			arg2 = args[2].([]string)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -99,7 +105,7 @@ func (_c *MockMetricsExtractor_Extract_Call) Return(metricsExtractorResult model
 	return _c
 }
 
-func (_c *MockMetricsExtractor_Extract_Call) RunAndReturn(run func(ctx context.Context, subsystem string) (model.MetricsExtractorResult, error)) *MockMetricsExtractor_Extract_Call {
+func (_c *MockMetricsExtractor_Extract_Call) RunAndReturn(run func(ctx context.Context, backend string, queries []string) (model.MetricsExtractorResult, error)) *MockMetricsExtractor_Extract_Call {
 	_c.Call.Return(run)
 	return _c
 }

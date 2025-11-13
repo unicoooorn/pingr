@@ -11,7 +11,7 @@ type Checker interface {
 }
 
 type MetricsExtractor interface {
-	Extract(ctx context.Context, subsystem string, queries []string) (model.MetricsExtractorResult, error)
+	Extract(ctx context.Context, backend string, queries []string) (model.MetricsExtractorResult, error)
 }
 
 type AlertGenerator interface {
