@@ -99,9 +99,9 @@ func TestInitiateCheck_UnhealthySystem_AlertSent(t *testing.T) {
 		Return(model.CheckResult{Status: model.PingStatusOk}, nil).Once()
 
 	// Метрики для обоих бэкендов
-	metricsExtractor.On("Extract", mock.Anything, "backend1").
+	metricsExtractor.On("Extract", mock.Anything, "backend1", []string(nil)).
 		Return(model.MetricsExtractorResult{}, nil).Once()
-	metricsExtractor.On("Extract", mock.Anything, "backend2").
+	metricsExtractor.On("Extract", mock.Anything, "backend2", []string(nil)).
 		Return(model.MetricsExtractorResult{}, nil).Once()
 
 	// Генерация сообщения алерта

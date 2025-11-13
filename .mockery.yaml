@@ -1,0 +1,16 @@
+pkgname: mocks
+filename: "mock_{{.InterfaceName}}.go"
+recursive: true
+template: testify
+
+packages:
+  github.com/unicoooorn/pingr/internal/service:
+    config:
+      dir: internal/service/mocks
+    interfaces:
+      AlertGenerator: {}
+      MetricsExtractor: {}
+      Checker: {}
+      AlertSender: {}
+      InfographicsRenderer: {}
+    
