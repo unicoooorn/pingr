@@ -69,7 +69,7 @@ func NewLLMApi(config *config.Config) *llmApi {
 
 	return &llmApi{
 		client: &client,
-		model:  "gpt://" + yaModel + "/latest",
+		model:  "gpt://" + os.Getenv("YANDEX_CLOUD_FOLDER") + "/" + yaModel + "/latest",
 		config: config,
 	}
 }
