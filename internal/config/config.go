@@ -10,17 +10,25 @@ import (
 )
 
 type Config struct {
-	Backends map[string]BackendConfig `yaml:"backends" mapstructure:"backends"`
+	Backends   map[string]BackendConfig `yaml:"backends" mapstructure:"backends"`
+	Prometheus PrometheusConfig         `yaml:"prometheus" mapstructure:"prometheus"`
 }
 
 type BackendConfig struct {
-	Type     string                 `yaml:"type" mapstructure:"type"`
-	Deps     []string               `yaml:"deps" mapstructure:"deps"`
-	URL      string            			`yaml:"url" mapstructure:"url"`
-	Timeout  time.Duration          `yaml:"timeout" mapstructure:"timeout"`
-	Host     string            			`yaml:"host" mapstructure:"host"`
-	Port     int               			`yaml:"port" mapstructure:"port"`
-	Headers  map[string]string 			`yaml:"headers" mapstructure:"headers"`
+	Type           string            `yaml:"type" mapstructure:"type"`
+	Deps           []string          `yaml:"deps" mapstructure:"deps"`
+	URL            string            `yaml:"url" mapstructure:"url"`
+	Timeout        time.Duration     `yaml:"timeout" mapstructure:"timeout"`
+	Host           string            `yaml:"host" mapstructure:"host"`
+	Port           int               `yaml:"port" mapstructure:"port"`
+	Headers        map[string]string `yaml:"headers" mapstructure:"headers"`
+	MetricsQueries []string          `yaml:"metrics_queries" mapstructure:"metrics_queries"`
+}
+
+type PrometheusConfig struct {
+	URL     string            `yaml:"url" mapstructure:"url"`
+	Timeout time.Duration     `yaml:"timeout" mapstructure:"timeout"`
+	Headers map[string]string `yaml:"headers" mapstructure:"headers"`
 }
 
 func Load(configPath string) (*Config, error) {
