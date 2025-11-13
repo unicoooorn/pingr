@@ -73,7 +73,6 @@ func TestSender_SendAlert_Non200(t *testing.T) {
 	}
 }
 
-// Test context cancellation: server sleeps, context times out -> expect wrapped context error.
 func TestSender_SendAlert_ContextCancel(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(200 * time.Millisecond)
@@ -93,6 +92,69 @@ func TestSender_SendAlert_ContextCancel(t *testing.T) {
 
 	if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
 		t.Fatalf("expected context cancellation error, got: %v", err)
+	}
+}
+
+func TestSender_SendAlert_SendPhoto_Success(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if !strings.Contains(r.URL.Path, "/bottoken/sendPhoto") {
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+
+		ct := r.Header.Get("Content-Type")
+		if !strings.HasPrefix(ct, "multipart/form-data") {
+			t.Fatalf("unexpected content-type: %s", ct)
+		}
+
+		if err := r.ParseMultipartForm(10 << 20); err != nil {
+			t.Fatalf("parse multipart: %v", err)
+		}
+
+		if got := r.FormValue("chat_id"); got != "chat123" {
+			t.Fatalf("chat_id mismatch: %q", got)
+		}
+
+		file, _, err := r.FormFile("photo")
+		if err != nil {
+			t.Fatalf("missing photo part: %v", err)
+		}
+		defer file.Close()
+		b, _ := io.ReadAll(file)
+		if len(b) == 0 {
+			t.Fatalf("photo is empty")
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	api := NewTgApi(server.URL, "token", "chat123")
+	ctx := context.Background()
+
+	img := []byte{1, 2, 3, 4}
+	if err := api.SendAlert(ctx, "caption", img); err != nil {
+		t.Fatalf("SendAlert returned error: %v", err)
+	}
+}
+
+func TestSender_SendAlert_SendPhoto_Non200(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("bad request"))
+	}))
+	defer server.Close()
+
+	api := NewTgApi(server.URL, "token", "chat123")
+	ctx := context.Background()
+	img := []byte{1, 2, 3}
+	if err := api.SendAlert(ctx, "x", img); err == nil {
+		t.Fatalf("expected error for non-200 response, got nil")
+	} else {
+		if !strings.Contains(err.Error(), "tg api returned status") {
+			t.Fatalf("unexpected error message: %v", err)
+		}
 	}
 }
 

@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
+	"mime/multipart"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
@@ -42,8 +44,86 @@ type sendPayload struct {
 func (l *tgApi) SendAlert(
 	ctx context.Context,
 	alertMessage string,
-	_ []byte, // todo: handle image
+	infographics []byte,
 ) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	// Если картинки нет — старый путь: sendMessage JSON
+	if len(infographics) == 0 {
+		return l.sendMessage(ctx, alertMessage)
+	}
+
+	base := strings.TrimRight(l.url, "/")
+
+	const telegramCaptionLimit = 1024
+	caption := alertMessage
+	truncated := false
+
+	if len(caption) > telegramCaptionLimit {
+		caption = caption[:telegramCaptionLimit]
+		truncated = true
+	}
+
+	endpoint := fmt.Sprintf("%s/bot%s/sendPhoto", base, l.token)
+
+	var body bytes.Buffer
+	w := multipart.NewWriter(&body)
+
+	// file part
+	fw, err := w.CreateFormFile("photo", "infographic.png")
+	if err != nil {
+		return fmt.Errorf("create form file: %w", err)
+	}
+	if _, err := fw.Write(infographics); err != nil {
+		return fmt.Errorf("write image to form: %w", err)
+	}
+
+	// fields
+	if err := w.WriteField("chat_id", l.chatId); err != nil {
+		return fmt.Errorf("write chat_id: %w", err)
+	}
+	if caption != "" {
+		if err := w.WriteField("caption", caption); err != nil {
+			return fmt.Errorf("write caption: %w", err)
+		}
+	}
+
+	// обязательно закрыть writer перед созданием запроса — boundary финализируется
+	if err := w.Close(); err != nil {
+		return fmt.Errorf("close multipart writer: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, &body)
+	if err != nil {
+		return fmt.Errorf("create request to tg api: %w", err)
+	}
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("do request to tg api: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("tg api returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(respBody)))
+	}
+
+	// если подпись была обрезана — отправим полный текст отдельным sendMessage
+	if truncated {
+		if err := l.sendMessage(ctx, alertMessage); err != nil {
+			return fmt.Errorf("sent photo but failed to send full message: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (l *tgApi) sendMessage(ctx context.Context, text string) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -53,7 +133,7 @@ func (l *tgApi) SendAlert(
 
 	payload := sendPayload{
 		ChatID:                l.chatId,
-		Text:                  alertMessage,
+		Text:                  text,
 		ParseMode:             "",
 		DisableWebPagePreview: true,
 	}
@@ -67,9 +147,10 @@ func (l *tgApi) SendAlert(
 	if err != nil {
 		return fmt.Errorf("create request to tg api: %w", err)
 	}
+
 	req.Header.Set("Content-Type", "application/json")
 
-	client := http.DefaultClient
+	client := &http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("do request to tg api: %w", err)
@@ -77,7 +158,6 @@ func (l *tgApi) SendAlert(
 	defer resp.Body.Close()
 
 	respBody, _ := io.ReadAll(resp.Body)
-
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("tg api returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(respBody)))
 	}
@@ -87,6 +167,7 @@ func (l *tgApi) SendAlert(
 
 func (l *tgApi) Poll(ctx context.Context) (starts []string, stops []string, err error) {
 	bot, err := tgbotapi.NewBotAPI(l.token)
+
 	if err != nil {
 		return nil, nil, fmt.Errorf("create bot api: %w", err)
 	}
