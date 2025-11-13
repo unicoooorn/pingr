@@ -27,7 +27,7 @@ func Run(ctx context.Context, cfg config.Config) error {
 		service.New(
 			checker.NewChecker(&cfg),
 			sender.NewTgApi("todo", "todo", "todo"),
-			generator.NewLLMApi("todo", "todo"),
+			generator.NewLLMApi(&cfg),
 			nil, // todo: add renderer
 			nil, // todo add metrics extractor
 			cfg,
