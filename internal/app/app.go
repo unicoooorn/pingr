@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"os"
 
 	"github.com/unicoooorn/pingr/internal/alert/generator"
 	"github.com/unicoooorn/pingr/internal/alert/sender"
@@ -31,10 +32,14 @@ func Run(ctx context.Context, cfg config.Config) error {
 		return fmt.Errorf("unable to extract metrics: %w", err)
 	}
 
+	tgApiUrl := os.Getenv("TG_API_URL")
+	tgToken := os.Getenv("TG_TOKEN")
+	tgChatId := os.Getenv("TG_CHAT_ID")
+
 	return scheduler.NewFixedIntervalScheduler(
 		service.New(
 			checker.NewChecker(&cfg),
-			sender.NewTgApi("todo", "todo", "todo"),
+			sender.NewTgApi(tgApiUrl, tgToken, tgChatId),
 			generator.NewLLMApi(&cfg),
 			metricsExtractor,
 			infographics.NewImageRenderer(cfg, time.Second*10),

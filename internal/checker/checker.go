@@ -36,32 +36,32 @@ func (r *CheckerImpl) Check(ctx context.Context, subsystem string) (model.CheckR
 		if subsystem_cfg.URL == "" {
 			return model.CheckResult{}, fmt.Errorf("http checker: missing url")
 		}
-		return CheckHttpHealth(ctx, subsystem_cfg.URL, subsystem_cfg.Headers, subsystem_cfg.Timeout)
+		return CheckHttpHealth(ctx, subsystem_cfg.URL, subsystem_cfg.Headers, subsystem_cfg.Timeout), nil
 	case "grpc":
 		if subsystem_cfg.URL == "" {
 			return model.CheckResult{}, fmt.Errorf("postgres checker: missing url (DSN)")
 		}
-		return CheckGrpcHealth(ctx, addr, subsystem_cfg.Timeout)
+		return CheckGrpcHealth(ctx, addr, subsystem_cfg.Timeout), nil
 	case "icmp":
 		if subsystem_cfg.Host == "" {
 			return model.CheckResult{}, fmt.Errorf("icmp checker: missing host")
 		}
-		return CheckIcmpHealth(ctx, subsystem_cfg.Host, subsystem_cfg.Timeout)
+		return CheckIcmpHealth(ctx, subsystem_cfg.Host, subsystem_cfg.Timeout), nil
 	case "tcp":
 		if subsystem_cfg.Host == "" || subsystem_cfg.Port == 0 {
 			return model.CheckResult{}, fmt.Errorf("tcp checker: missing host and/or port")
 		}
-		return CheckTcpHealth(ctx, subsystem_cfg.Host, subsystem_cfg.Port, subsystem_cfg.Timeout)
+		return CheckTcpHealth(ctx, subsystem_cfg.Host, subsystem_cfg.Port, subsystem_cfg.Timeout), nil
 	case "redis":
 		if subsystem_cfg.Host == "" || subsystem_cfg.Port == 0 {
 			return model.CheckResult{}, fmt.Errorf("redis checker: missing host and/or port")
 		}
-		return CheckRedisHealth(ctx, addr, subsystem_cfg.Timeout)
+		return CheckRedisHealth(ctx, addr, subsystem_cfg.Timeout), nil
 	case "postgres":
 		if subsystem_cfg.URL == "" {
 			return model.CheckResult{}, fmt.Errorf("postgres checker: missing url (DSN)")
 		}
-		return CheckPostgresHealth(ctx, subsystem_cfg.URL, subsystem_cfg.Timeout)
+		return CheckPostgresHealth(ctx, subsystem_cfg.URL, subsystem_cfg.Timeout), nil
 	default:
 		return model.CheckResult{}, fmt.Errorf("unknown backend type: '%s'", subsystem_cfg.Type)
 	}

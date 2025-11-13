@@ -28,6 +28,7 @@ backends:
       - "avg_over_time(app_mem_usage_percent[5m])"
 
   sum_aggregator:
+    deps: ["sum_service1", "sum_service2"]
     type: http
     url: "http://sum_aggregator:8080/health"
     timeout: 2s
@@ -40,6 +41,7 @@ backends:
       - "avg_over_time(app_mem_usage_percent[5m])"
   
   spammer:
+    deps: ["sum_aggregator"]
     type: tcp
     host: spammer
     port: 7777

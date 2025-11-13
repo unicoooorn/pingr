@@ -13,6 +13,8 @@ FROM alpine:3.18
 
 WORKDIR /app
 
+RUN apk add --update --no-cache graphviz
+
 COPY --from=builder /pingr .
 
 COPY config/config.yaml ./config/config.yaml
