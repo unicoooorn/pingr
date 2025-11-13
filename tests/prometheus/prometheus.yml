@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'sum_services'
+    static_configs:
+      - targets:
+          - sum_service1:8081
+          - sum_service2:8082
+          - sum_aggregator:8080
