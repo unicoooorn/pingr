@@ -1,0 +1,65 @@
+services:
+  sum_service1:
+    build:
+      context: ./sum_service
+    container_name: sum_service1
+    ports:
+      - "8081:8081"
+    environment:
+      - APP_PORT=8081
+
+  sum_service2:
+    build:
+      context: ./sum_service
+    container_name: sum_service2
+    ports:
+      - "8082:8082"
+    environment:
+      - APP_PORT=8082
+
+  sum_aggregator:
+    build:
+      context: ./sum_service
+    container_name: sum_aggregator
+    environment:
+      - APP_PORT=8080
+    command: "http://sum_service1:8081/get_value,http://sum_service2:8082/get_value"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - sum_service1
+      - sum_service2
+
+  spammer:
+    build:
+      context: ./spammer
+    container_name: spammer
+    command: ["http://sum_aggregator:8080/get_value", "100"]
+    ports:
+      - "7777:7777"
+    depends_on:
+      - sum_aggregator
+
+  pingr:
+    build:
+      context: ..
+    container_name: pingr
+    volumes:
+      - ./pingr/config.yaml:/app/config/config.yaml
+    depends_on:
+      - sum_service1
+      - sum_service2
+      - sum_aggregator
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command: --web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9091:9090"
+    depends_on:
+      - sum_service1
+      - sum_service2
+      - sum_aggregator
