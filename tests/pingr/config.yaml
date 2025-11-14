@@ -3,9 +3,9 @@ prometheus:
   timeout: 2s
 
 backends:
-  sum_service1:
+  service1:
     type: http
-    url: "http://sum_service1:8081/health"
+    url: "http://service1:8081/health"
     timeout: 2s
     metrics_queries:
       - "rate(get_value_duration_seconds_sum[5m]) / rate(get_value_duration_seconds_count[5m])"
@@ -15,9 +15,9 @@ backends:
       - "max_over_time(app_mem_usage_percent[5m])"
       - "avg_over_time(app_mem_usage_percent[5m])"
 
-  sum_service2:
+  service2:
     type: http
-    url: "http://sum_service2:8082/health"
+    url: "http://service2:8082/health"
     timeout: 2s
     metrics_queries:
       - "rate(get_value_duration_seconds_sum[5m]) / rate(get_value_duration_seconds_count[5m])"
@@ -27,10 +27,23 @@ backends:
       - "max_over_time(app_mem_usage_percent[5m])"
       - "avg_over_time(app_mem_usage_percent[5m])"
 
-  sum_aggregator:
-    deps: ["sum_service1", "sum_service2"]
+  svc_aggregator:
+    deps: ["service1", "service2"]
     type: http
-    url: "http://sum_aggregator:8080/health"
+    url: "http://svc_aggregator:8083/health"
+    timeout: 2s
+    metrics_queries:
+      - "rate(get_value_duration_seconds_sum[5m]) / rate(get_value_duration_seconds_count[5m])"
+      - "increase(get_value_requests_total[5m])"
+      - "app_cpu_usage_percent"
+      - "app_mem_usage_percent"
+      - "max_over_time(app_mem_usage_percent[5m])"
+      - "avg_over_time(app_mem_usage_percent[5m])"
+  
+  svc_common:
+    deps: ["svc_aggregator"]
+    type: http
+    url: "http://svc_common:8080/health"
     timeout: 2s
     metrics_queries:
       - "rate(get_value_duration_seconds_sum[5m]) / rate(get_value_duration_seconds_count[5m])"
@@ -41,7 +54,7 @@ backends:
       - "avg_over_time(app_mem_usage_percent[5m])"
   
   spammer:
-    deps: ["sum_aggregator"]
+    deps: ["svc_common"]
     type: tcp
     host: spammer
     port: 7777

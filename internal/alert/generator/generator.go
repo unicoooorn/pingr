@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"html/template"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -82,6 +83,8 @@ func (l *llmApi) GenerateAlertMessage(
 	if err != nil {
 		return "", fmt.Errorf("build prompt: %w", err)
 	}
+
+	slog.Info(prompt)
 
 	resp, err := l.client.Chat.Completions.New(context.Background(), openai.ChatCompletionNewParams{
 		Model: l.model,
