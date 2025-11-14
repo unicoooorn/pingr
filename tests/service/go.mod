@@ -1,4 +1,4 @@
-module sum_service
+module service
 
 go 1.24.0
 

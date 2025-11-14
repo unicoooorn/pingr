@@ -5,6 +5,7 @@ scrape_configs:
   - job_name: 'sum_services'
     static_configs:
       - targets:
-          - sum_service1:8081
-          - sum_service2:8082
-          - sum_aggregator:8080
+          - service1:8081
+          - service2:8082
+          - svc_aggregator:8083
+          - svc_common:8080
